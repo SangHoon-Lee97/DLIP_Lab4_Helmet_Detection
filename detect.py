@@ -135,6 +135,11 @@ def detect(opt):
 
             # cv2.imshow("image",imc)
             if len(det):
+                #Variables initialize
+                num_person = 0 
+                num_helmet = 0 
+                num_head   = 0
+
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
 
@@ -142,12 +147,6 @@ def detect(opt):
                 for classes_ in det[:, -1].unique(): 
                     n1 = (det[:, -1] == classes_).sum()  # detections per class
                     s1 += f"{n1} {names[int(classes_)]}{'s1' * (n1 > 1)}, "  # add to string
-
-                
-                #Variables initialize
-                num_person = 0 
-                num_helmet = 0 
-                num_head   = 0
 
                 # Post Processing.
                 for *xyxy, conf, cls in reversed(det):
