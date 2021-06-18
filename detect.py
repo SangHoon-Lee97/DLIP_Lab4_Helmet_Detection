@@ -1,14 +1,16 @@
 import argparse
 import time
 from pathlib import Path
-from timeit import default_timer as timer
+
 import cv2
-import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
+
 import serial
-import time
+import numpy as np
+from timeit import default_timer as timer
 from pygame import mixer
+
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
@@ -19,7 +21,6 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
 def detect(opt):
-    use_arduino = False
     source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
@@ -76,7 +77,8 @@ def detect(opt):
     SoundFlag2 = 0
     play_count1 = 0
     play_count2 = 0
-    
+    use_arduino = False
+
     # Arduino Connection
     if(use_arduino):
         arduino = serial.Serial('com5',9600)
@@ -118,16 +120,15 @@ def detect(opt):
         # Process detections
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
-                p, s1, s2, im0, frame = path[i], f'{i}: ',f'{i}: ', im0s[i].copy(), dataset.count
+                p, s1, im0, frame = path[i], f'{i}: ', im0s[i].copy(), dataset.count
             else:
-                p, s1,s2, im0, frame = path, '','', im0s.copy(), getattr(dataset, 'frame', 0)
+                p, s1, im0, frame = path, '', im0s.copy(), getattr(dataset, 'frame', 0)
             
             
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
             s1 += '%gx%g ' % img.shape[2:]  # print string
-            s2 += '%gx%g ' % img.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if opt.save_crop else im0  # for opt.save_crop
             Warning_FLAG = 2 # Default Flag
@@ -139,14 +140,9 @@ def detect(opt):
 
                 # Print results
                 for classes_ in det[:, -1].unique(): 
-                    if(int(classes_) == 0):
-                        n1 = (det[:, -1] == classes_).sum()  # detections per class
-                        s1 += f"{n1} {names[int(classes_)]}{'s1' * (n1 > 1)}, "  # add to string
-                        # num_person = int(n1)
-                    elif (int(classes_)==1):
-                        n2 = (det[:, -1] == classes_).sum()  # detections per class
-                        s2 += f"{n2} {names[int(classes_)]}{'s2' * (n2 > 1)}, "  # add to string
-                        # num_helmet = int(n2)
+                    n1 = (det[:, -1] == classes_).sum()  # detections per class
+                    s1 += f"{n1} {names[int(classes_)]}{'s1' * (n1 > 1)}, "  # add to string
+
                 
                 #Variables initialize
                 num_person = 0 
@@ -426,7 +422,7 @@ def detect(opt):
     
     # File save in txt
     f = open("person_head_helmet2.txt",'w')
-    for i in range(num_save+1):
+    for i in range(num_save):
         f.write(str(i)+ ', ' + str(buf_person[i]) + ', ' + str(buf_head[i]) + ', '+ str(buf_helmet[i]) +'\n')
     f.close()
 
@@ -463,9 +459,4 @@ if __name__ == '__main__':
     print(opt)
     check_requirements(exclude=('tensorboard', 'pycocotools', 'thop'))
 
-    if opt.update:  # update all models (to fix SourceChangeWarning)
-        for opt.weights in ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']:
-            detect(opt=opt)
-            strip_optimizer(opt.weights)
-    else:
-        detect(opt=opt)
+    detect(opt=opt)
