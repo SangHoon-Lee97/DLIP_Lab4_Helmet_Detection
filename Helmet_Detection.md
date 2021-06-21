@@ -104,6 +104,8 @@ Figure above are System Structure of a program. First we choose mode for certain
 
 ![Helmet-Detection%20Using%20YOLO-V5%205505027f74b14ae2a7c30b14bf9956a6/Untitled%204.png](Helmet-Detection%20Using%20YOLO-V5%205505027f74b14ae2a7c30b14bf9956a6/Untitled%204.png)
 
+If you want to run the code without using Arduino for serial communication, change 'use_arduino' to False
+
 3.  Variables for measuring the number of people, helmets, and heads. It must be declared after
 
      len(det) to be updated and used in Mode
